@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCEDReader", "src\SCEDReader\SCEDReader.csproj", "{BB09F1A3-53EA-4B88-BC28-FF533D10B6FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCEDReader.Tests", "tests\SCEDReader.Tests\SCEDReader.Tests.csproj", "{AF5AAB35-64CE-478C-A5F4-19062DFB8152}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BB09F1A3-53EA-4B88-BC28-FF533D10B6FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB09F1A3-53EA-4B88-BC28-FF533D10B6FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB09F1A3-53EA-4B88-BC28-FF533D10B6FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB09F1A3-53EA-4B88-BC28-FF533D10B6FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF5AAB35-64CE-478C-A5F4-19062DFB8152}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF5AAB35-64CE-478C-A5F4-19062DFB8152}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF5AAB35-64CE-478C-A5F4-19062DFB8152}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF5AAB35-64CE-478C-A5F4-19062DFB8152}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
