@@ -1,18 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using Flurl;
 using HtmlAgilityPack;
 
 namespace SCEDReader
 {
     public static class ReportsPage
     {
+        public static string ExtractId(string downloadUrl)
+        {
+            var url = new Url(downloadUrl);
+            var queryString = url.QueryParams;
+            var reportId = queryString.FirstOrDefault(a => a.Name.Equals("doclookupId", StringComparison.OrdinalIgnoreCase));
+            return reportId == null ? "" : $"SCED60Day_{reportId.Value}.zip";
+        }
+
         public static string HistoricDisclosureLink { get; set; } =
             "http://mis.ercot.com/misapp/GetReports.do?reportTypeId=13052";
 
-        public static Func<HtmlDocument, List<SCEDDisclosureLink>> ExtractFn { get; set; } = document =>
+        public static Func<HtmlDocument, List<string>> ExtractFn { get; set; } = document =>
         {
             var uri = new Uri(HistoricDisclosureLink);
             var baseUrl = uri.AbsoluteUri.Replace(uri.PathAndQuery, "");
@@ -20,27 +29,30 @@ namespace SCEDReader
                 .Where(listing => listing != null).ToList();
         };
 
-        public static async Task<List<SCEDDisclosureLink>> Available()
+        public static async Task<IEnumerable<FileInfo>> DownloadAllAsync(Func<string, string> targetFileNameFn = null)
+        {
+            var saveFileNameFn = targetFileNameFn ?? (s => null);
+            var savedFiles = new List<FileInfo>();
+            foreach (var reportLink in await CurrentAvailableAsync())
+            {
+                savedFiles.Add(await reportLink.SaveReportAsync(saveFileNameFn(reportLink)));
+            }
+            return savedFiles.ToArray();
+        }
+
+        public static async Task<List<string>> CurrentAvailableAsync()
         {
             var web = new HtmlWeb();
             var htmlDoc = await web.LoadFromWebAsync(HistoricDisclosureLink);
             return ExtractFn(htmlDoc);
         }
 
-        private static SCEDDisclosureLink ExtractListing(this HtmlNode tableRow, string baseUrl)
+        private static string ExtractListing(this HtmlNode tableRow, string baseUrl)
         {
-            SCEDDisclosureLink listing = null;
+            string listing = null;
             foreach (var cell in tableRow.ChildNodes)
             {
-                if (cell.HasClass("labelOptional_ind"))
-                {
-                    listing = new SCEDDisclosureLink
-                    {
-                        Name = cell.InnerText
-                    };
-                    continue;
-                }
-                if (!cell.HasChildNodes || listing == null)
+                if (!cell.HasChildNodes)
                 {
                     continue;
                 }
@@ -50,15 +62,9 @@ namespace SCEDReader
                     continue;
                 }
                 var relativePath = links.SelectMany(a => a.Attributes.Select(z => z.DeEntitizeValue)).FirstOrDefault();
-                listing.Link = $"{baseUrl}{relativePath}";
+                listing = $"{baseUrl}{relativePath}";
             }
             return listing;
         }
-    }
-
-    public class SCEDDisclosureLink
-    {
-        public string Name { get; set; }
-        public string Link { get; set; }
     }
 }
