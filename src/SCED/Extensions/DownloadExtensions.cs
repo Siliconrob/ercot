@@ -1,9 +1,10 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Flurl.Http;
 
-namespace SCEDReader
+namespace SCED.Extensions
 {
     public static class DownloadExtensions
     {
@@ -12,6 +13,22 @@ namespace SCEDReader
         private static string CleanFileName(this string fileName)
         {
             return Path.GetInvalidFileNameChars().Aggregate(fileName ?? "", (current, c) => current.Replace(c.ToString(), string.Empty));
+        }
+
+        public static async Task<byte[]> GetDataAsync(this string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return new byte[] { };
+            }
+            var request = new FlurlRequest(url);
+            using (var response = await request.SendAsync(HttpMethod.Get))
+            using (var httpStream = await response.Content.ReadAsStreamAsync())
+            using (var memStream = new MemoryStream())
+            {
+                await httpStream.CopyToAsync(memStream);
+                return memStream.ToArray();
+            }
         }
 
         public static async Task<FileInfo> SaveReportAsync(this string url, string fileNameToSave = null)

@@ -3,12 +3,19 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 
-namespace SCEDReader
+namespace SCED.Extensions
 {
     public static class FileInfoExtensions
     {
-        public static IEnumerable<FileInfo> UnZip(this FileInfo zipFile)
+        public static IEnumerable<FileInfo> UnZip(this FileInfo zipFile, IEnumerable<string> inputMatchSet = null)
         {
+            var matchSet = (inputMatchSet ?? new List<string>()).ToList();
+            if (!matchSet.Any())
+            {
+                matchSet.AddRange(ZipExtensions.SCED60DaySet);
+            }
+            matchSet = matchSet.Distinct().ToList();
+
             var unzippedFiles = new List<FileInfo>();
             if (zipFile == null || !zipFile.Exists)
             {
@@ -18,6 +25,10 @@ namespace SCEDReader
             {
                 foreach (var entry in archive.Entries)
                 {
+                    if (!matchSet.Any(z => z.Like($"%{entry.Name}%")))
+                    {
+                        continue;
+                    }
                     var unzipFileLocation = Path.Combine(zipFile.Directory?.FullName, entry.Name);
                     entry.ExtractToFile(unzipFileLocation, true);
                     unzippedFiles.Add(new FileInfo(unzipFileLocation));

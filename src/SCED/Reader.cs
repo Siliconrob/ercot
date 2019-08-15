@@ -5,10 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Flurl;
 using HtmlAgilityPack;
+using SCED.Extensions;
 
-namespace SCEDReader
+namespace SCED
 {
-    public static class ReportsPage
+    public static class Reader
     {
         public static string ExtractId(string downloadUrl)
         {
@@ -39,12 +40,16 @@ namespace SCEDReader
             }
             return savedFiles.ToArray();
         }
+        public static Func<Task<HtmlDocument>> ReadDocumentAsync { get; set; }
 
         public static async Task<List<string>> CurrentAvailableAsync()
         {
-            var web = new HtmlWeb();
-            var htmlDoc = await web.LoadFromWebAsync(HistoricDisclosureLink);
-            return ExtractFn(htmlDoc);
+            var getHtmlFn = ReadDocumentAsync ?? (async () =>
+            {
+                var web = new HtmlWeb();
+                return await web.LoadFromWebAsync(HistoricDisclosureLink);
+            });
+            return ExtractFn(await getHtmlFn());
         }
 
         private static string ExtractListing(this HtmlNode tableRow, string baseUrl)

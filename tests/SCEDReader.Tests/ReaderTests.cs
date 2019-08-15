@@ -1,12 +1,45 @@
+using System;
+using System.IO;
 using System.Threading.Tasks;
+using SCED;
+using SCED.Extensions;
 using Xunit;
 
 namespace SCEDReader.Tests
 {
     public class ReaderTests
     {
+        public const string ValidReportUrl = "http://mis.ercot.com/misdownload/servlets/mirDownload?mimic_duns=&doclookupId=673890346";
+
         [Theory]
-        [InlineData("http://mis.ercot.com/misdownload/servlets/mirDownload?mimic_duns=&doclookupId=673890346")]
+        [InlineData(ValidReportUrl)]
+        public async Task ReadSettlementData(string url)
+        {
+            var data = await url.GetDataAsync();
+            Assert.NotEmpty(data);
+            var settlements = await data.ReadSettlements();
+            Assert.All(settlements, Assert.NotNull);
+            //var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.zip");
+            //File.WriteAllBytes(tempPath, data);
+            //var info = new FileInfo(tempPath);
+            //Assert.True(info.Exists);
+        }
+
+
+        [Theory]
+        [InlineData(ValidReportUrl)]
+        public async Task GetFileData(string url)
+        {
+            var data = await url.GetDataAsync();
+            Assert.NotEmpty(data);
+            var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.zip");
+            File.WriteAllBytes(tempPath, data);
+            var info = new FileInfo(tempPath);
+            Assert.True(info.Exists);
+        }
+
+        [Theory]
+        [InlineData(ValidReportUrl)]
         public async Task DownloadFile(string url)
         {
             var savedFile = await url.SaveReportAsync("abc");
@@ -15,10 +48,10 @@ namespace SCEDReader.Tests
         }
 
         [Theory]
-        [InlineData("http://mis.ercot.com/misdownload/servlets/mirDownload?mimic_duns=&doclookupId=673890346")]
+        [InlineData(ValidReportUrl)]
         public async Task Unzip(string url)
         {
-            var savedFile = await url.SaveReportAsync(ReportsPage.ExtractId(url));
+            var savedFile = await url.SaveReportAsync(Reader.ExtractId(url));
             Assert.NotNull(savedFile);
             Assert.True(savedFile.Exists);
             var files = savedFile.UnZip();
@@ -32,7 +65,7 @@ namespace SCEDReader.Tests
         [Fact]
         public async Task CurrentListing()
         {
-            var listings = await ReportsPage.CurrentAvailableAsync();
+            var listings = await Reader.CurrentAvailableAsync();
             Assert.NotNull(listings);
             foreach (var listing in listings)
             {
@@ -43,7 +76,7 @@ namespace SCEDReader.Tests
         [Fact]
         public async Task DownloadAllCurrent()
         {
-            var reportFiles = await ReportsPage.DownloadAllAsync();
+            var reportFiles = await Reader.DownloadAllAsync();
             Assert.NotNull(reportFiles);
             foreach (var reportFile in reportFiles)
             {
@@ -51,6 +84,5 @@ namespace SCEDReader.Tests
                 Assert.True(reportFile.Exists);
             }
         }
-
     }
 }
