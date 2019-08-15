@@ -19,10 +19,6 @@ namespace SCEDReader.Tests
             Assert.NotEmpty(data);
             var settlements = await data.ReadSettlements();
             Assert.All(settlements, Assert.NotNull);
-            //var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.zip");
-            //File.WriteAllBytes(tempPath, data);
-            //var info = new FileInfo(tempPath);
-            //Assert.True(info.Exists);
         }
 
 

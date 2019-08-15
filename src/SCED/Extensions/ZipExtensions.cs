@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SCED.Models;
@@ -20,21 +21,18 @@ namespace SCED.Extensions
             using (var memStream = new MemoryStream(zipFileData))
             using (var file = new ZipArchive(memStream))
             {
-                foreach (var entry in file.Entries)
+                var matchedEntry = file.Entries.FirstOrDefault(z => z.Name.Like($"%{fileName}%"));
+                if (matchedEntry == null)
                 {
-                    if (!entry.Name.Like($"%{fileName}%"))
-                    {
-                        continue;
-                    }
-                    using (var destMem = new MemoryStream())
-                    using (var reader = entry.Open())
-                    {
-                        await reader.CopyToAsync(destMem);
-                        return Encoding.UTF8.GetString(destMem.ToArray());
-                    }
+                    return "";
+                }
+                using (var destMem = new MemoryStream())
+                using (var reader = matchedEntry.Open())
+                {
+                    await reader.CopyToAsync(destMem);
+                    return Encoding.UTF8.GetString(destMem.ToArray());
                 }
             }
-            return "";
         }
 
         public static async Task<List<SettlementRecord>> ReadSettlements(this byte[] zipFileData)
