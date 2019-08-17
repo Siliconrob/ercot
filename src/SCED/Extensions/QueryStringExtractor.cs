@@ -2,16 +2,24 @@ using System;
 using System.Linq;
 using Flurl;
 
-namespace SCED
+namespace SCED.Extensions
 {
     public static class QueryStringExtractor
     {
-        public static string ExtractKey(string downloadUrl, string id = "doclookupId")
+        public static string ExtractKey(string downloadUrl, QueryStringKeyPattern pattern = null)
         {
+            pattern = pattern ?? new QueryStringKeyPattern();
             var url = new Url(downloadUrl);
             var queryString = url.QueryParams;
-            var reportId = queryString.FirstOrDefault(a => a.Name.Equals(id, StringComparison.OrdinalIgnoreCase));
-            return reportId == null ? "" : $"SCED60Day_{reportId.Value}.zip";
+            var reportId = queryString.FirstOrDefault(a => a.Name.Equals(pattern.ExtractionKey ?? "", StringComparison.OrdinalIgnoreCase));
+            return reportId == null ? "" : $"{pattern.Prefix}{reportId.Value}{pattern.Suffix}";
         }
+    }
+
+    public class QueryStringKeyPattern
+    {
+        public string ExtractionKey { get; set; }
+        public string Prefix { get; set; }
+        public string Suffix { get; set; }
     }
 }

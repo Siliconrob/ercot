@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using JM.LinqFaster.Parallel;
 using SCED;
 using SCED.Extensions;
 using Xunit;
@@ -19,6 +20,8 @@ namespace SCEDReader.Tests
             Assert.NotEmpty(data);
             var settlements = await data.ReadSettlements();
             Assert.All(settlements, Assert.NotNull);
+            var nuclearPowerRecords = settlements.WhereP(z => z.EnergySource.Equals("NUC", StringComparison.OrdinalIgnoreCase));
+            Assert.NotEmpty(nuclearPowerRecords);
         }
 
 
@@ -47,7 +50,7 @@ namespace SCEDReader.Tests
         [InlineData(ValidReportUrl)]
         public async Task Unzip(string url)
         {
-            var savedFile = await url.SaveReportAsync(Reader.ExtractId(url));
+            var savedFile = await url.SaveReportAsync(SettlementReader.ExtractIdFn(url));
             Assert.NotNull(savedFile);
             Assert.True(savedFile.Exists);
             var files = savedFile.UnZip();
@@ -61,7 +64,7 @@ namespace SCEDReader.Tests
         [Fact]
         public async Task CurrentListing()
         {
-            var listings = await Reader.CurrentAvailableAsync();
+            var listings = await SettlementReader.CurrentAvailableAsync();
             Assert.NotNull(listings);
             foreach (var listing in listings)
             {
@@ -72,7 +75,7 @@ namespace SCEDReader.Tests
         [Fact]
         public async Task DownloadAllCurrent()
         {
-            var reportFiles = await Reader.DownloadAllAsync();
+            var reportFiles = await SettlementReader.DownloadAllAsync();
             Assert.NotNull(reportFiles);
             foreach (var reportFile in reportFiles)
             {

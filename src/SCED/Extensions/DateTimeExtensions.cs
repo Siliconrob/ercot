@@ -1,3 +1,5 @@
+using System;
+
 namespace SCED.Extensions
 {
     public static class DateTimeExtensions

@@ -8,6 +8,6 @@ namespace SCED.Models
         public TimeSpan Period { get; set; }
         public double PowerMW { get; set; }
         public string UtilityName { get; set; }
-        public double MaxPowerCapabilityMW { get; set; }
+        public string EnergySource { get; set; }
     }
 }

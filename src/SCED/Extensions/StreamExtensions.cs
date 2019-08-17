@@ -5,7 +5,7 @@ namespace SCED.Extensions
 {
     public static class StreamExtensions
     {
-        public static async Task<string> ReadStream(this Stream input)
+        public static async Task<string> ReadStreamAsync(this Stream input)
         {
             using (var memReader = new StreamReader(input))
             {

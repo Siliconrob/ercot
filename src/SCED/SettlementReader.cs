@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Flurl;
 using HtmlAgilityPack;
 using SCED.Extensions;
 
@@ -11,13 +10,14 @@ namespace SCED
 {
     public static class SettlementReader
     {
-        public static string ExtractId(string downloadUrl)
+        public static Func<string, string> ExtractIdFn = s => QueryStringExtractor.ExtractKey(s, ExtractIdPattern);
+        
+        public static QueryStringKeyPattern ExtractIdPattern { get; set; } = new QueryStringKeyPattern
         {
-            var url = new Url(downloadUrl);
-            var queryString = url.QueryParams;
-            var reportId = queryString.FirstOrDefault(a => a.Name.Equals("doclookupId", StringComparison.OrdinalIgnoreCase));
-            return reportId == null ? "" : $"SCED60Day_{reportId.Value}.zip";
-        }
+            ExtractionKey = "docLookupId",
+            Prefix = "SCED60Day_",
+            Suffix = ".zip"
+        };
 
         public static string HistoricDisclosureLink { get; set; } =
             "http://mis.ercot.com/misapp/GetReports.do?reportTypeId=13052";

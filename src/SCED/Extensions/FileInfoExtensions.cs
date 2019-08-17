@@ -12,7 +12,7 @@ namespace SCED.Extensions
             var matchSet = (inputMatchSet ?? new List<string>()).ToList();
             if (!matchSet.Any())
             {
-                matchSet.AddRange(ZipExtensions.SCED60DaySet);
+                matchSet.AddRange(ZipExtensions.SCED60SetFileNames);
             }
             matchSet = matchSet.Distinct().ToList();
 
