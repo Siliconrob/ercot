@@ -9,7 +9,7 @@ using SCED.Extensions;
 
 namespace SCED
 {
-    public static class Reader
+    public static class SettlementReader
     {
         public static string ExtractId(string downloadUrl)
         {
