@@ -56,19 +56,19 @@ namespace SCED.Extensions
                 UtilityName = z.ResourceCode,
                 PowerMW = z.IntervalValue,
                 PeriodEnd = z.IntervalTime
-            }, 1000);
+            });
 
             records.SelectInPlaceP(z =>
             {
                 var energySource = SCED60Day.General.WhereSelectP(
-                        a => a.ResourceName == z.UtilityName && a.TimeStamp == z.PeriodEnd, raw => raw?.ResourceType, 1000)
+                        a => a.ResourceName == z.UtilityName && a.TimeStamp == z.PeriodEnd, raw => raw?.ResourceType)
                     .FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(energySource))
                 {
                     z.EnergySource = energySource;
                 }
                 return z;
-            }, 1000);
+            });
             var filtered = records.WhereP(z => !string.IsNullOrWhiteSpace(z.EnergySource));
             return filtered;
         }

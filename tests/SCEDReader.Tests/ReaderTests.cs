@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using JM.LinqFaster.Parallel;
 using SCED;
@@ -10,13 +11,12 @@ namespace SCEDReader.Tests
 {
     public class ReaderTests
     {
-        public const string ValidReportUrl = "http://mis.ercot.com/misdownload/servlets/mirDownload?mimic_duns=&doclookupId=673890346";
-
-        [Theory]
-        [InlineData(ValidReportUrl)]
-        public async Task ReadSettlementData(string url)
+        [Fact]
+        public async Task ReadSettlementData()
         {
-            var data = await url.GetDataAsync();
+            var latestListing = (await SettlementReader.CurrentAvailableAsync()).First();
+            Assert.NotNull(latestListing);
+            var data = await latestListing.GetDataAsync();
             Assert.NotEmpty(data);
             var settlements = await data.ReadSettlements();
             Assert.All(settlements, Assert.NotNull);
@@ -25,11 +25,12 @@ namespace SCEDReader.Tests
         }
 
 
-        [Theory]
-        [InlineData(ValidReportUrl)]
-        public async Task GetFileData(string url)
+        [Fact]
+        public async Task GetFileData()
         {
-            var data = await url.GetDataAsync();
+            var latestListing = (await SettlementReader.CurrentAvailableAsync()).First();
+            Assert.NotNull(latestListing);
+            var data = await latestListing.GetDataAsync();
             Assert.NotEmpty(data);
             var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.zip");
             File.WriteAllBytes(tempPath, data);
@@ -37,20 +38,22 @@ namespace SCEDReader.Tests
             Assert.True(info.Exists);
         }
 
-        [Theory]
-        [InlineData(ValidReportUrl)]
-        public async Task DownloadFile(string url)
+        [Fact]
+        public async Task DownloadFile()
         {
-            var savedFile = await url.SaveReportAsync("abc");
+            var latestListing = (await SettlementReader.CurrentAvailableAsync()).First();
+            Assert.NotNull(latestListing);
+            var savedFile = await latestListing.SaveReportAsync("abc");
             Assert.NotNull(savedFile);
             Assert.True(savedFile.Exists);
         }
 
-        [Theory]
-        [InlineData(ValidReportUrl)]
-        public async Task Unzip(string url)
+        [Fact]
+        public async Task Unzip()
         {
-            var savedFile = await url.SaveReportAsync(SettlementReader.ExtractIdFn(url));
+            var latestListing = (await SettlementReader.CurrentAvailableAsync()).First();
+            Assert.NotNull(latestListing);
+            var savedFile = await latestListing.SaveReportAsync(SettlementReader.ExtractIdFn(latestListing));
             Assert.NotNull(savedFile);
             Assert.True(savedFile.Exists);
             var files = savedFile.UnZip();
