@@ -22,13 +22,11 @@ namespace SCED.Extensions
                 return new byte[] { };
             }
             var request = new FlurlRequest(url);
-            using (var response = await request.SendAsync(HttpMethod.Get))
-            using (var httpStream = await response.Content.ReadAsStreamAsync())
-            using (var memStream = new MemoryStream())
-            {
-                await httpStream.CopyToAsync(memStream);
-                return memStream.ToArray();
-            }
+            using var response = await request.SendAsync(HttpMethod.Get);
+            await using var httpStream = await response.GetStreamAsync();
+            await using var memStream = new MemoryStream();
+            await httpStream.CopyToAsync(memStream);
+            return memStream.ToArray();
         }
 
         public static async Task<FileInfo> SaveReportAsync(this string url, string fileNameToSave = null)
@@ -55,7 +53,7 @@ namespace SCED.Extensions
 
         public static class DefaultFileInfo
         {
-            public static readonly FileInfo Value = new FileInfo("null");
+            public static readonly FileInfo Value = new("null");
         }
     }
 }

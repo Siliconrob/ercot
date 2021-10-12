@@ -1,15 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
+        <Nullable>warnings</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CsvHelper" Version="12.1.2" />
-      <PackageReference Include="Flurl" Version="2.8.2" />
-      <PackageReference Include="Flurl.Http" Version="2.4.2" />
-      <PackageReference Include="HtmlAgilityPack" Version="1.11.12" />
+      <PackageReference Include="CsvHelper" Version="27.1.1" />
+      <PackageReference Include="Flurl" Version="3.0.2" />
+      <PackageReference Include="Flurl.Http" Version="3.2.0" />
+      <PackageReference Include="HtmlAgilityPack" Version="1.11.37" />
       <PackageReference Include="LinqFaster.Parallel" Version="1.0.2" />
+      <PackageReference Update="Microsoft.NETCore.App" Version="2.2.8" />
+      <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SCED.Model\SCED.Model.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Extensions\StreamExtensions.cs">
+        <DependentUpon>StringExtensions.cs</DependentUpon>
+      </Compile>
     </ItemGroup>
 
 </Project>

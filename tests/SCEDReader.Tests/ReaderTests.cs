@@ -33,7 +33,7 @@ namespace SCEDReader.Tests
             var data = await latestListing.GetDataAsync();
             Assert.NotEmpty(data);
             var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid().ToString()}.zip");
-            File.WriteAllBytes(tempPath, data);
+            await File.WriteAllBytesAsync(tempPath, data);
             var info = new FileInfo(tempPath);
             Assert.True(info.Exists);
         }

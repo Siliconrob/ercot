@@ -8,11 +8,11 @@ namespace SCED.Extensions
     {
         public static string ExtractKey(string downloadUrl, QueryStringKeyPattern pattern = null)
         {
-            pattern = pattern ?? new QueryStringKeyPattern();
+            pattern ??= new QueryStringKeyPattern();
             var url = new Url(downloadUrl);
             var queryString = url.QueryParams;
             var reportId = queryString.FirstOrDefault(a => a.Name.Equals(pattern.ExtractionKey ?? "", StringComparison.OrdinalIgnoreCase));
-            return reportId == null ? "" : $"{pattern.Prefix}{reportId.Value}{pattern.Suffix}";
+            return reportId.Name == null ? "" : $"{pattern.Prefix}{reportId.Value}{pattern.Suffix}";
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -13,41 +14,37 @@ namespace SCED.Extensions
 {
     public static class ZipExtensions
     {
-        public static readonly List<string> SCED60SetFileNames = new List<string> { SettlementResource, GeneralResourceFileName };
+        public static readonly List<string> SCED60SetFileNames = new() { SettlementResource, GeneralResourceFileName };
 
         private const string GeneralResourceFileName = "60d_SCED_Gen_Resource_Data";
         private const string SettlementResource = "60d_SCED_SMNE_GEN_RES";
 
         private static async Task<byte[]> ReadFileDataAsync(this byte[] zipFileData, string fileName)
         {
-            zipFileData = zipFileData ?? new byte[] { };
-            using (var memStream = new MemoryStream(zipFileData))
-            using (var file = new ZipArchive(memStream))
-            {
-                var matchedEntry = file.Entries.FirstOrDefault(z => z.Name.Like($"%{fileName}%"));
-                return matchedEntry != null ? await matchedEntry.ReadContentsAsync() : new byte[] {};
-            }
+            zipFileData ??= new byte[] { };
+            await using var memStream = new MemoryStream(zipFileData);
+            using var file = new ZipArchive(memStream);
+            var matchedEntry = file.Entries.FirstOrDefault(z => z.Name.Like($"%{fileName}%"));
+            return matchedEntry != null ? await matchedEntry.ReadContentsAsync() : new byte[] {};
         }
 
         private static async Task<byte[]> ReadContentsAsync(this ZipArchiveEntry archive)
         {
-            using (var destMem = new MemoryStream())
-            using (var reader = archive.Open())
-            {
-                await reader.CopyToAsync(destMem);
-                return destMem.ToArray();
-            }
+            await using var destMem = new MemoryStream();
+            await using var reader = archive.Open();
+            await reader.CopyToAsync(destMem);
+            return destMem.ToArray();
         }
 
         public static async Task<List<SettlementRecord>> ReadSettlements(this byte[] zipFileData)
         {
-            zipFileData = zipFileData ?? new byte[] { };
+            zipFileData ??= new byte[] { };
             var SCED60Day = new
             {
-                General = new MemoryStream(await zipFileData.ReadFileDataAsync(GeneralResourceFileName))
+                General = await new MemoryStream(await zipFileData.ReadFileDataAsync(GeneralResourceFileName))
                     .Records<GeneralRaw>(new GeneralRawMap()),
                 Settlement =
-                    new MemoryStream(await zipFileData.ReadFileDataAsync(SettlementResource)).Records<SettlementRaw>(
+                    await new MemoryStream(await zipFileData.ReadFileDataAsync(SettlementResource)).Records<SettlementRaw>(
                         new SettlementRawMap())
             };
 
@@ -73,13 +70,12 @@ namespace SCED.Extensions
             return filtered;
         }
 
-        private static List<T> Records<T>(this Stream input, ClassMap mapping)
+        private static async ValueTask<List<T>> Records<T>(this Stream input, ClassMap mapping)
         {
-            using (var csv = new CsvReader(new StreamReader(input)))
-            {
-                csv.Configuration.RegisterClassMap(mapping);
-                return csv.GetRecords<T>().ToList();
-            }
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture);
+            using var csv = new CsvReader(new StreamReader(input), config);
+            csv.Context.RegisterClassMap(mapping);
+            return await (csv.GetRecordsAsync<T>()).ToListAsync();
         }
 
         private class GeneralRaw
@@ -92,7 +88,7 @@ namespace SCED.Extensions
         {
             public GeneralRawMap()
             {
-                Map(m => m.TimeStamp).ConvertUsing(row => DateTime.Parse(row.GetField("SCED Time Stamp")).Round(TimeSpan.FromMinutes(1)).ToUniversalTime());
+                Map(m => m.TimeStamp).Convert(row => DateTime.Parse(row.Row.GetField("SCED Time Stamp")).Round(TimeSpan.FromMinutes(1)).ToUniversalTime());
                 Map(m => m.ResourceName).Name("Resource Name");
                 Map(m => m.ResourceType).Name("Resource Type");
             }
@@ -110,7 +106,7 @@ namespace SCED.Extensions
         {
             public SettlementRawMap()
             {
-                Map(m => m.IntervalTime).ConvertUsing(row => DateTime.Parse(row.GetField("Interval Time")).Round(TimeSpan.FromMinutes(1)).ToUniversalTime());
+                Map(m => m.IntervalTime).Convert(row => DateTime.Parse(row.Row.GetField("Interval Time")).Round(TimeSpan.FromMinutes(1)).ToUniversalTime());
                 Map(m => m.IntervalNumber).Name("Interval Number");
                 Map(m => m.ResourceCode).Name("Resource Code");
                 Map(m => m.IntervalValue).Name("Interval Value");

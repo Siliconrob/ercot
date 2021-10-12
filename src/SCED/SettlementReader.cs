@@ -12,7 +12,7 @@ namespace SCED
     {
         public static Func<string, string> ExtractIdFn = s => QueryStringExtractor.ExtractKey(s, ExtractIdPattern);
         
-        public static QueryStringKeyPattern ExtractIdPattern { get; set; } = new QueryStringKeyPattern
+        public static QueryStringKeyPattern ExtractIdPattern { get; set; } = new()
         {
             ExtractionKey = "docLookupId",
             Prefix = "SCED60Day_",
